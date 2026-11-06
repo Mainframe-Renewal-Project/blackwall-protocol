@@ -141,7 +141,7 @@ class PanelDataset(VerticalScroll):
         self.notify("Switched to edit mode",severity="information")
 
     def on_mount(self) -> None:
-        if dataset.dataset_profile_exists(self.dataset_info.profile_name):
+        if self.dataset_info.base_traits is not None:
             self.query_exactly_one("#profile_name",Input).value = self.dataset_info.profile_name
             if self.dataset_info.base_traits is not None:
                 set_traits_in_input(self,traits=self.dataset_info.base_traits,prefix="base")

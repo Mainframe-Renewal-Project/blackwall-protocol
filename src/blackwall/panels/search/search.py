@@ -110,8 +110,9 @@ class PanelSearch(VerticalScroll):
                 results = search_database_query_one(query=search_query, class_name=None,query_types=QueryType.all())
                 self.post_message(OpenTab("Results",PanelResultsMixedType(results)))
             elif search_switcher_id == "search_user_panel":
-                if user.user_exists(username=search_query):
-                    new_user_panel = get_user_objects_for_panel(search_query)
+                user_dict = user.get_user(search_query)
+                if user_dict and user_dict["return_codes"]["racf_return_code"] == 0:
+                    new_user_panel = get_user_objects_for_panel(search_query, user_dict)
                     
                     self.post_message(OpenTab(f"User: {search_query}",new_user_panel))
 
@@ -124,10 +125,9 @@ class PanelSearch(VerticalScroll):
                     results_panel = PanelResultsUsers(search_results)
                     self.post_message(OpenTab("Results",results_panel))
             elif search_switcher_id == "search_group_panel":
-                if group.group_exists(group=search_query):
+                group_dict = group.get_group(group=search_query)
+                if group_dict and group_dict["return_codes"]["racf_return_code"] == 0:
                     new_group_panel = PanelGroup()
-
-                    group_dict = group.get_group(group=search_query)
                 
                     base_traits = group.BaseGroupTraits.from_dict(prefix="base",source=group_dict["profile"]["base"])
 
@@ -145,10 +145,9 @@ class PanelSearch(VerticalScroll):
                 else:
                     self.notify(f"Group {search_query} couldn't be found")
             elif search_switcher_id == "search_dataset_panel":
-                if dataset.dataset_profile_exists(dataset=search_query):
+                dataset_dict = dataset.get_dataset_profile(dataset=search_query)
+                if dataset_dict and dataset_dict["return_codes"]["racf_return_code"] == 0:
                     new_dataset_panel = PanelDataset()
-
-                    dataset_dict = dataset.get_dataset_profile(dataset=search_query)
                 
                     base_traits = dataset.BaseDatasetTraits.from_dict(prefix="base",source=dataset_dict["profile"]["base"])
 
@@ -165,10 +164,9 @@ class PanelSearch(VerticalScroll):
             elif search_switcher_id == "search_resource_panel":
                 search_query_class = self.query_exactly_one(f"#{search_switcher_id}").query_exactly_one("#search_field_class",Input).value
 
-                if resource.resource_profile_exists(resource=search_query,resource_class=search_query_class):
+                resource_dict = resource.get_resource_profile(resource=search_query,resource_class=search_query_class)
+                if resource_dict and resource_dict["return_codes"]["racf_return_code"] == 0:
                     new_resource_panel = PanelResource()
-
-                    resource_dict = resource.get_resource_profile(resource=search_query,resource_class=search_query_class)
                 
                     base_traits = resource.BaseResourceTraits.from_dict(prefix="base",source=resource_dict["profile"]["base"])
 

@@ -154,7 +154,7 @@ class PanelResource(VerticalScroll):
         self.notify("Switched to edit mode",severity="information")
 
     def on_mount(self) -> None:
-        if resource.resource_profile_exists(resource=self.resource_info.resource_name,resource_class=self.resource_info.resource_class):
+        if self.resource_info.base_traits is not None:
             self.query_exactly_one("#resource_profile_name",Input).value = self.resource_info.resource_name
             self.query_exactly_one("#resource_profile_class",Input).value = self.resource_info.resource_class
             if self.resource_info.base_traits is not None:

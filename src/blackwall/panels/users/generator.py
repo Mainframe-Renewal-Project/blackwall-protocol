@@ -3,10 +3,11 @@ from blackwall.panels.panel_mode import PanelMode
 from blackwall.panels.users.user import PanelUser, UserInfo
 
 
-def get_user_objects_for_panel(username: str) -> PanelUser:
+def get_user_objects_for_panel(username: str, user_dict: dict | None = None) -> PanelUser:
     new_user_panel = PanelUser()
 
-    user_dict = user.get_user(username)
+    if user_dict is None:
+        user_dict = user.get_user(username)
 
     base_traits = user.BaseUserTraits.from_dict(prefix="base",source=user_dict["profile"]["base"])
 
