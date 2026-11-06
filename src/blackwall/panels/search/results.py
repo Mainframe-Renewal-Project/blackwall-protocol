@@ -4,9 +4,10 @@ from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.widgets import DataTable, Label, LoadingIndicator
 
-from blackwall.api import user
-from blackwall.api import resource
+from blackwall.api import dataset, group, resource, user
 from blackwall.messages import OpenTab
+from blackwall.panels.dataset.dataset import DatasetInfo, PanelDataset
+from blackwall.panels.group.group import GroupInfo, PanelGroup
 from blackwall.panels.resource.generator import get_resource_objects_for_panel
 from blackwall.panels.search.search_backend import QueryType
 from blackwall.panels.users.generator import get_user_objects_for_panel
@@ -119,7 +120,32 @@ class PanelResultsGroup(Vertical):
     def on_mount(self) -> None:
         group_table = self.get_child_by_id("results_group_table",DataTable)
         group_table.zebra_stripes = True
-        group_table.add_columns(*GROUP_COLUMNS[0])
+        group_table.add_column("Group")
+        profiles = self.group_dict.get("profiles", [])
+        if profiles:
+            group_table.add_rows((profile,) for profile in profiles)
+
+    def key_enter(self) -> None:
+        group_table = self.query_exactly_one("#results_group_table",DataTable)
+        if group_table.row_count == 0 or group_table.cursor_column != 0:
+            return
+        group_name = group_table.get_cell_at(group_table.cursor_coordinate)
+        group_dict = group.get_group(group_name)
+        if not group_dict or group_dict["return_codes"]["racf_return_code"] != 0:
+            return
+
+        panel = PanelGroup()
+        profile = group_dict["profile"]
+        panel.group_info = GroupInfo(
+            base_traits=group.BaseGroupTraits.from_dict(prefix="base",source=profile["base"]),
+            group_name=group_name,
+        )
+        if "dfp" in profile:
+            panel.group_info.dfp_traits = group.DFPGroupTraits.from_dict(
+                prefix="dfp",
+                source=profile["dfp"],
+            )
+        self.post_message(OpenTab(f"Group: {group_name}",panel))
 
 class PanelResultsDatasets(Vertical):
     def __init__(self, dataset_dict: dict):
@@ -133,7 +159,30 @@ class PanelResultsDatasets(Vertical):
     def on_mount(self) -> None:
         dataset_table = self.get_child_by_id("results_dataset_table",DataTable)
         dataset_table.zebra_stripes = True
-        dataset_table.add_columns(*DATASET_COLUMNS[0])
+        dataset_table.add_column("Dataset")
+        profiles = self.dataset_dict.get("profiles", [])
+        if profiles:
+            dataset_table.add_rows((profile,) for profile in profiles)
+
+    def key_enter(self) -> None:
+        dataset_table = self.query_exactly_one("#results_dataset_table",DataTable)
+        if dataset_table.row_count == 0 or dataset_table.cursor_column != 0:
+            return
+        dataset_name = dataset_table.get_cell_at(dataset_table.cursor_coordinate)
+        dataset_dict = dataset.get_dataset_profile(dataset_name)
+        if not dataset_dict or dataset_dict["return_codes"]["racf_return_code"] != 0:
+            return
+
+        profile = dataset_dict["profile"]
+        panel = PanelDataset()
+        panel.dataset_info = DatasetInfo(
+            base_traits=dataset.BaseDatasetTraits.from_dict(
+                prefix="base",
+                source=profile["base"],
+            ),
+            profile_name=dataset_name,
+        )
+        self.post_message(OpenTab(f"Dataset: {dataset_name}",panel))
 
 class PanelResultsResources(Vertical):
     def __init__(self, resource_dict: dict, resource_class: str | None = None):

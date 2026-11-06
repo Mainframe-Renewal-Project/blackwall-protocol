@@ -16,6 +16,8 @@ from blackwall.panels.group.group import GroupInfo, PanelGroup
 from blackwall.panels.keyrings.keyrings import KeyringInfo, PanelKeyring
 from blackwall.panels.resource.generator import get_resource_objects_for_panel
 from blackwall.panels.search.results import (
+    PanelResultsDatasets,
+    PanelResultsGroup,
     PanelResultsMixedType,
     PanelResultsResources,
     PanelResultsUsers,
@@ -147,7 +149,11 @@ class PanelSearch(VerticalScroll):
 
                     self.notify(f"Found group: {search_query}")
                 else:
-                    self.notify(f"Group {search_query} couldn't be found")
+                    if search_query in ("", "*"):
+                        group_results = group.get_groups()
+                    else:
+                        group_results = group.search_group(search_query)
+                    self.post_message(OpenTab("Groups",PanelResultsGroup(group_results)))
             elif search_switcher_id == "search_dataset_panel":
                 dataset_dict = dataset.get_dataset_profile(dataset=search_query)
                 if dataset_dict and dataset_dict["return_codes"]["racf_return_code"] == 0:
@@ -164,7 +170,11 @@ class PanelSearch(VerticalScroll):
 
                     self.notify(f"Found dataset profile: {search_query}")
                 else:
-                    self.notify(f"Dataset profile {search_query} couldn't be found")
+                    if search_query in ("", "*"):
+                        dataset_results = dataset.get_dataset_profiles()
+                    else:
+                        dataset_results = dataset.search_dataset_profiles(search_query)
+                    self.post_message(OpenTab("Dataset profiles",PanelResultsDatasets(dataset_results)))
             elif search_switcher_id == "search_resource_panel":
                 search_query_class = self.query_exactly_one(f"#{search_switcher_id}").query_exactly_one("#search_field_class",Input).value
                 if not search_query_class:

@@ -109,7 +109,7 @@ def get_dataset_profiles() -> dict:
 def search_dataset_profiles(query: str) -> dict:
     """Get dataset profiles matching a specific filtering"""
     if sear_enabled:
-        result = sear({"operation": "extract", "admin_type": "dataset", "dataset_filter": query})
+        result = sear({"operation": "search", "admin_type": "dataset", "dataset_filter": query})
         return result.result
     else:
         return {}
