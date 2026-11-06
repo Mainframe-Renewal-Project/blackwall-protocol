@@ -1,7 +1,8 @@
 
+from textual import work
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.widgets import DataTable, Label
+from textual.widgets import DataTable, Label, LoadingIndicator
 
 from blackwall.api import user
 from blackwall.messages import OpenTab
@@ -27,46 +28,72 @@ class PanelResultsUsers(Vertical):
 
     def compose(self) -> ComposeResult:
         yield Label("Users:")
-        yield DataTable(id="results_user_table")     
+        yield LoadingIndicator(id="results_user_loading")
+        yield DataTable(id="results_user_table")
 
     def on_mount(self) -> None:
         user_table = self.get_child_by_id("results_user_table",DataTable)
         user_table.zebra_stripes = True
-        user_table.add_columns(*USER_COLUMNS[0]) 
-        if "profiles" in self.user_dict:
-            for user_entry in self.user_dict["profiles"]:
-                user_info = user.get_user(username=user_entry)
-                if "profile" in user_info:
-                    base_traits = user.BaseUserTraits.from_dict(prefix="base",source=user_info["profile"]["base"])
+        user_table.add_columns(*USER_COLUMNS[0])
+        self._load_user_rows()
 
-                    uid_temp = ""
-                    shell_temp = ""
-                    home_temp = ""
+    @work(thread=True, exclusive=True)
+    def _load_user_rows(self) -> None:
+        rows = []
+        try:
+            if "profiles" in self.user_dict:
+                for user_entry in self.user_dict["profiles"]:
+                    user_info = user.get_user(username=user_entry)
+                    if "profile" in user_info:
+                        base_traits = user.BaseUserTraits.from_dict(prefix="base",source=user_info["profile"]["base"])
 
-                    if 'omvs' in user_info['profile']:
-                        omvs_traits = user.OMVSUserTraits.from_dict(prefix="omvs",source=user_info["profile"]["omvs"])
+                        uid_temp = ""
+                        shell_temp = ""
+                        home_temp = ""
 
-                        uid_temp = omvs_traits.uid
-                        shell_temp = omvs_traits.default_shell
-                        home_temp = omvs_traits.home_directory
-                    
-                    if base_traits.last_access_date is not None and base_traits.last_access_time is not None:
-                        logon_date = f"{base_traits.last_access_date} at {base_traits.last_access_time}"
+                        if 'omvs' in user_info['profile']:
+                            omvs_traits = user.OMVSUserTraits.from_dict(prefix="omvs",source=user_info["profile"]["omvs"])
+
+                            uid_temp = omvs_traits.uid
+                            shell_temp = omvs_traits.default_shell
+                            home_temp = omvs_traits.home_directory
+                        
+                        if base_traits.last_access_date is not None and base_traits.last_access_time is not None:
+                            logon_date = f"{base_traits.last_access_date} at {base_traits.last_access_time}"
+                        else:
+                            logon_date = ""
+                        
+                        rows.append((
+                            user_entry,
+                            base_traits.name,
+                            base_traits.owner,
+                            base_traits.default_group,
+                            logon_date,
+                            base_traits.create_date,
+                            uid_temp,
+                            shell_temp,
+                            home_temp,
+                        ))
                     else:
-                        logon_date = ""
-                    
-                    user_table.add_row(user_entry,
-                                       base_traits.name,
-                                       base_traits.owner,
-                                       base_traits.default_group,
-                                       logon_date,
-                                       base_traits.create_date,
-                                       uid_temp,
-                                       shell_temp,
-                                       home_temp,
-                                       )
-                else:
-                    user_table.add_row(user_entry)
+                        rows.append((user_entry, "", "", "", "", "", "", "", ""))
+        except Exception as error:
+            self.app.call_from_thread(self._show_user_error, error)
+            return
+
+        self.app.call_from_thread(self._show_user_rows, rows)
+
+    def _show_user_rows(self, rows: list[tuple]) -> None:
+        if not self.is_mounted:
+            return
+        self.get_child_by_id("results_user_loading",LoadingIndicator).remove()
+        if rows:
+            self.get_child_by_id("results_user_table",DataTable).add_rows(rows)
+
+    def _show_user_error(self, error: Exception) -> None:
+        if not self.is_mounted:
+            return
+        self.get_child_by_id("results_user_loading",LoadingIndicator).remove()
+        self.notify(f"Could not load user results: {error}",severity="error")
 
     def key_enter(self) -> None:
         datatable = self.query_exactly_one("#results_user_table", DataTable)
