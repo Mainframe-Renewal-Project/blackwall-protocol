@@ -1,10 +1,11 @@
 
 from dataclasses import dataclass
 
+from textual import work
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup, VerticalScroll
 from textual.reactive import reactive
-from textual.widgets import Button, Label
+from textual.widgets import Button, Label, LoadingIndicator
 
 from blackwall.api.setropts import (
     BaseSetroptsTraits,
@@ -97,11 +98,34 @@ class PanelSetropts(VerticalScroll):
         mode_section.edit_mode = value.mode
   
     def on_mount(self) -> None:
-        racf_options = get_racf_options()
-        self.get_child_by_type(PanelSetroptsFields).base_traits = BaseSetroptsTraits.from_dict(prefix="base",source=racf_options["profile"]["base"])
+        self._load_racf_options()
+
+    @work(thread=True, exclusive=True)
+    def _load_racf_options(self) -> None:
+        try:
+            racf_options = get_racf_options()
+            base_traits = BaseSetroptsTraits.from_dict(prefix="base",source=racf_options["profile"]["base"])
+        except Exception as error:
+            self.app.call_from_thread(self._show_load_error, error)
+            return
+
+        self.app.call_from_thread(self._show_racf_options, base_traits)
+
+    def _show_racf_options(self, base_traits: BaseSetroptsTraits) -> None:
+        if not self.is_mounted:
+            return
+        self.get_child_by_type(PanelSetroptsFields).base_traits = base_traits
+        self.get_child_by_id("setropts_loading",LoadingIndicator).remove()
+
+    def _show_load_error(self, error: Exception) -> None:
+        if not self.is_mounted:
+            return
+        self.get_child_by_id("setropts_loading",LoadingIndicator).remove()
+        self.notify(f"Could not load RACF options: {error}",severity="error")
 
     def compose(self) -> ComposeResult:
         yield PanelSetroptsNotice()
+        yield LoadingIndicator(id="setropts_loading")
         yield PanelSetroptsMode(switch_action="switch")
         yield PanelSetroptsFields()
         yield PanelSetroptsActionButtons(save_action="save")
