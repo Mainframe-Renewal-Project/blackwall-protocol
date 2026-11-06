@@ -1,5 +1,5 @@
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
@@ -37,13 +37,11 @@ class PanelUserName(HorizontalGroup):
     """Username and name components"""
     username: reactive[str] = reactive("")
 
-    edit_mode: reactive[PanelMode] = reactive(PanelMode.create,recompose=True)
-
-    username_is_disabled = edit_mode is True
+    edit_mode: reactive[PanelMode] = reactive(PanelMode.create)
 
     def compose(self) -> ComposeResult:
         yield Label("Username*:")
-        yield Input(max_length=8,restrict=racf_id_regex,id="username",classes="field-short-generic",tooltip="Username is what the user uses to log on with, this is required. While very few characters can be used at least 4 character long usernames are recommended to avoid collisions",disabled=self.username_is_disabled).data_bind(value=PanelUserName.username)
+        yield Input(max_length=8,restrict=racf_id_regex,id="username",classes="field-short-generic",tooltip="Username is what the user uses to log on with, this is required. While very few characters can be used at least 4 character long usernames are recommended to avoid collisions",disabled=self.edit_mode is PanelMode.edit).data_bind(value=PanelUserName.username)
         yield Label("name:")
         yield Input(max_length=20,id="base_name",classes="name",tooltip="For personal users this is typically used for names i.e. Song So Mi, for system users it can be the name of the subsystem that it is used for")
 
@@ -155,8 +153,6 @@ class PanelUserActionButtons(HorizontalGroup):
     """Action buttons"""
     edit_mode: reactive[PanelMode] = reactive(PanelMode.create,recompose=True)
 
-    delete_is_disabled = edit_mode is not True
-
     def __init__(self, save_action: str, delete_action: str):
         super().__init__()
         self.save_action = save_action
@@ -167,7 +163,7 @@ class PanelUserActionButtons(HorizontalGroup):
             yield Button("Create", tooltip="This will update the user, or create it if the user doesn't exist",action="save",classes="action-button",id="save")
         elif self.edit_mode == PanelMode.edit:
             yield Button(f"{get_emoji("💾")} Save", tooltip="This will update the user, or create it if the user doesn't exist",action="save",classes="action-button",id="save")
-        yield Button("Delete", tooltip="This will delete the user permanently from the RACF database",id="delete",action="delete",variant="error",classes="action-button",disabled=self.delete_is_disabled)
+        yield Button("Delete", tooltip="This will delete the user permanently from the RACF database",id="delete",action="delete",variant="error",classes="action-button",disabled=self.edit_mode is not PanelMode.edit)
 
     async def action_save(self):
         await self.app.run_action(self.save_action,default_namespace=self.parent)
@@ -218,8 +214,7 @@ class PanelUser(VerticalScroll):
     def on_mount(self) -> None:
         if self.user_info.base_traits is not None:
             self.query_exactly_one("#username",Input).value = self.user_info.username.upper()
-            if self.user_info.base_traits is not None:
-                set_traits_in_input(self,traits=self.user_info.base_traits,prefix="base")
+            set_traits_in_input(self,traits=self.user_info.base_traits,prefix="base")
             
             if self.user_info.tso_traits is not None:
                 set_traits_in_input(self,traits=self.user_info.tso_traits,prefix="tso")
@@ -266,15 +261,17 @@ class PanelUser(VerticalScroll):
             if self.user_info.operparm_traits is not None:
                 set_traits_in_input(self,traits=self.user_info.operparm_traits,prefix="operparm")
 
-            self.set_edit_mode()
+        self.set_mode(self.user_info.mode)
 
     def set_edit_mode(self):
-        #user_name_panel = self.get_child_by_type(PanelUserName)
-        #user_name_panel.mode = PanelMode.edit
-        self.query_exactly_one("#username",Input).disabled = True
-        self.query_exactly_one("#delete",Button).disabled = False
-        self.query_exactly_one("#save",Button).label = f"{get_emoji("💾")} Save"
-        self.notify("Switched to edit mode",severity="information")
+        self.set_mode(PanelMode.edit)
+
+    def set_mode(self, mode: PanelMode) -> None:
+        self.user_info = replace(self.user_info, mode=mode)
+        name_panel = self.get_child_by_type(PanelUserName)
+        name_panel.edit_mode = mode
+        name_panel.get_child_by_id("username",Input).disabled = mode is PanelMode.edit
+        self.get_child_by_type(PanelUserActionButtons).edit_mode = mode
 
     def action_delete_user_api(self):
         username = self.get_child_by_type(PanelUserName).get_child_by_id("username",Input).value
