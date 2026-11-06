@@ -45,6 +45,7 @@ class TabSystem(HorizontalGroup):
         ("ctrl+s", "open_rrsf", "Open RRSF tab"),
         #("ctrl+k", "open_copy", "Open copy tab"),
         #("ctrl+b", "open_backout", "Open backout tab"),
+        ("ctrl+b", "open_backout", "Backout changes"),
         ("ctrl+w", "remove", "Remove active tab"),
         ("ctrl+shift+w", "clear", "Clear all tabs"),
     ]

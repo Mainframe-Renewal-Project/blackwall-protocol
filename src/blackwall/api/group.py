@@ -4,6 +4,8 @@ import importlib.util
 from dataclasses import dataclass, field
 from typing import Any
 
+from blackwall.backout_journal import record_profile_change
+
 from .traits_base import TraitsBase
 
 #Checks if SEAR can be imported
@@ -109,6 +111,7 @@ class GroupObject:
 def update_group(group: str,create: bool, group_object: GroupObject):
     if sear_enabled:
         """Creates or updates an existing group"""
+        group_name = group.upper()
         traits = group_object.base_traits.to_traits(prefix="base")
 
         labels = ["tme","omvs","dfp","ovm"]
@@ -118,28 +121,56 @@ def update_group(group: str,create: bool, group_object: GroupObject):
                 traits.update(trait_object.to_traits(label))
 
         operation = "add" if create else "alter"
+        before_profile = None
+        if not create:
+            previous = sear({"operation": "extract", "admin_type": "group", "group": group_name})
+            if previous.result["return_codes"]["racf_return_code"] == 0:
+                before_profile = previous.result.get("profile")
         
         result = sear(
             {
                 "operation": operation, 
                 "admin_type": "group", 
-                "group": group.upper(),
+                "group": group_name,
                 "traits":  traits,
             },
         )
-        return result.result["return_codes"]["racf_return_code"]
+        return_code = result.result["return_codes"]["racf_return_code"]
+        if return_code in {0, 4}:
+            record_profile_change(
+                admin_type="group",
+                identity={"group": group_name},
+                operation=operation,
+                description=f"{'Created' if create else 'Updated'} group {group_name}",
+                before_profile=before_profile,
+                changed_traits=traits,
+            )
+        return return_code
 
 def delete_group(group: str) -> tuple[str, int]:
     if sear_enabled:
         """Deletes a group"""
+        group_name = group.upper()
+        previous = sear({"operation": "extract", "admin_type": "group", "group": group_name})
+        before_profile = None
+        if previous.result["return_codes"]["racf_return_code"] == 0:
+            before_profile = previous.result.get("profile")
         result = sear(
             {
                 "operation": "delete", 
                 "admin_type": "group", 
-                "group": group.upper(),
+                    "group": group_name,
             },
         )
-        #TODO add error message
-        return "", result.result["return_codes"]["racf_return_code"]
+        return_code = result.result["return_codes"]["racf_return_code"]
+        if return_code == 0:
+            record_profile_change(
+                admin_type="group",
+                identity={"group": group_name},
+                operation="delete",
+                description=f"Deleted group {group_name}",
+                before_profile=before_profile,
+            )
+        return "", return_code
     else:
         return "SEAR can't be found", 8

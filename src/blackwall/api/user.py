@@ -4,6 +4,8 @@ import importlib.util
 from dataclasses import dataclass, field
 from typing import Any
 
+from blackwall.backout_journal import record_profile_change
+
 from .traits_base import TraitsBase
 
 #Checks if SEAR can be imported
@@ -292,6 +294,12 @@ def update_user(
             traits.update(trait_object.to_traits(label))
 
     operation = "add" if create else "alter"
+    username = username.upper()
+    before_profile = None
+    if not create:
+        previous = sear({"operation": "extract", "admin_type": "user", "userid": username})
+        if previous.result["return_codes"]["racf_return_code"] == 0:
+            before_profile = previous.result.get("profile")
 
     result = sear(
             {
@@ -301,18 +309,42 @@ def update_user(
                 "traits":  traits,
             },
         )
-    return result.result["return_codes"]["racf_return_code"]
+    return_code = result.result["return_codes"]["racf_return_code"]
+    if return_code in {0, 4}:
+        record_profile_change(
+            admin_type="user",
+            identity={"userid": username},
+            operation=operation,
+            description=f"{'Created' if create else 'Updated'} user {username}",
+            before_profile=before_profile,
+            changed_traits=traits,
+        )
+    return return_code
 
 def delete_user(username: str) -> tuple[str, int]:
     if sear_enabled:
         """Deletes a user"""
+        username = username.upper()
+        previous = sear({"operation": "extract", "admin_type": "user", "userid": username})
+        before_profile = None
+        if previous.result["return_codes"]["racf_return_code"] == 0:
+            before_profile = previous.result.get("profile")
         result = sear(
                 {
                     "operation": "delete", 
                     "admin_type": "user", 
-                    "userid": username.upper(),
+                    "userid": username,
                 },
             )
-        return result.result["commands"][0]["messages"][0], result.result["return_codes"]["racf_return_code"]
+        return_code = result.result["return_codes"]["racf_return_code"]
+        if return_code == 0:
+            record_profile_change(
+                admin_type="user",
+                identity={"userid": username},
+                operation="delete",
+                description=f"Deleted user {username}",
+                before_profile=before_profile,
+            )
+        return result.result["commands"][0]["messages"][0], return_code
     else:
         return "SEAR can't be found", 8

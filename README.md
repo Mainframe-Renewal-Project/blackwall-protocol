@@ -24,11 +24,11 @@ Blackwall does not support ACF2 or Top Secret. Users are welcome to fork the cod
 - Modify and list system options
 - Give and update permits
 - Settings customization through toml files
+- Search through the RACF database
 
 ## Planned features
 
 - Certificate management
-- Advanced search
 
 ## Dependencies
 

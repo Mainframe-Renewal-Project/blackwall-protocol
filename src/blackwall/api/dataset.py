@@ -4,6 +4,8 @@ import importlib.util
 from dataclasses import dataclass, field
 from typing import Any
 
+from blackwall.backout_journal import record_profile_change
+
 from .traits_base import TraitsBase
 
 #Checks if SEAR can be imported
@@ -134,6 +136,12 @@ def update_dataset_profile(dataset: str, create: bool, dataset_object: DatasetOb
     """Creates or updates a dataset profile"""
     if sear_enabled:
         traits = dataset_object.base_traits.to_traits(prefix="base")
+        dataset_name = dataset.upper()
+        before_profile = None
+        if not create:
+            previous = sear({"operation": "extract", "admin_type": "dataset", "dataset": dataset_name})
+            if previous.result["return_codes"]["racf_return_code"] == 0:
+                before_profile = previous.result.get("profile")
         
         operation = "add" if create else "alter"
         
@@ -141,23 +149,46 @@ def update_dataset_profile(dataset: str, create: bool, dataset_object: DatasetOb
             {
                 "operation": operation, 
                 "admin_type": "dataset", 
-                "dataset": dataset.upper(),
+                "dataset": dataset_name,
                 "traits":  traits,
             },
         )
-        return result.result["return_codes"]["racf_return_code"]
+        return_code = result.result["return_codes"]["racf_return_code"]
+        if return_code in {0, 4}:
+            record_profile_change(
+                admin_type="dataset",
+                identity={"dataset": dataset_name},
+                operation=operation,
+                description=f"{'Created' if create else 'Updated'} dataset profile {dataset_name}",
+                before_profile=before_profile,
+                changed_traits=traits,
+            )
+        return return_code
 
 def delete_dataset_profile(dataset: str) -> tuple[str, int]:
     """Deletes a dataset profile"""
     if sear_enabled:
+        dataset_name = dataset.upper()
+        previous = sear({"operation": "extract", "admin_type": "dataset", "dataset": dataset_name})
+        before_profile = None
+        if previous.result["return_codes"]["racf_return_code"] == 0:
+            before_profile = previous.result.get("profile")
         result = sear(
                 {
                     "operation": "delete", 
                     "admin_type": "dataset", 
-                    "dataset": dataset.upper(),
+                    "dataset": dataset_name,
                 },
             )
-        #TODO add error message
-        return "", result.result["return_codes"]["racf_return_code"]
+        return_code = result.result["return_codes"]["racf_return_code"]
+        if return_code == 0:
+            record_profile_change(
+                admin_type="dataset",
+                identity={"dataset": dataset_name},
+                operation="delete",
+                description=f"Deleted dataset profile {dataset_name}",
+                before_profile=before_profile,
+            )
+        return "", return_code
     else:
         return "SEAR can't be found", 8

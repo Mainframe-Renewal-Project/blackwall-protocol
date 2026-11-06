@@ -4,6 +4,8 @@ import importlib.util
 from dataclasses import dataclass, field
 from typing import Any
 
+from blackwall.backout_journal import record_profile_change
+
 from .traits_base import TraitsBase
 
 #Checks if SEAR can be imported
@@ -306,6 +308,7 @@ def update_resource_profile(
         create: bool, 
         resource_object: ResourceObject,
         ):
+    resource_name = resource.upper()
     traits = resource_object.base_traits.to_traits(prefix="base")
 
     labels = ["kerb","dlf","eim","jes","icsf","ictx","idtparms","session","svfmr","stdata","proxy","mfpolicy","sigver","tme","cdtinfo","ssignon","cfdef"]
@@ -318,29 +321,67 @@ def update_resource_profile(
             traits.update(trait_object.to_traits(label))
 
     operation = "add" if create else "alter"
+    before_profile = None
+    if not create and sear_enabled:
+        previous = sear({
+            "operation": "extract",
+            "admin_type": "resource",
+            "resource": resource_name,
+            "class": resource_class,
+        })
+        if previous.result["return_codes"]["racf_return_code"] == 0:
+            before_profile = previous.result.get("profile")
     
     result = sear( # type: ignore
         {
             "operation": operation, 
             "admin_type": "resource", 
-            "resource": resource.upper(),
+            "resource": resource_name,
             "class": resource_class,
             "traits":  traits,
         },
     )
-    return result.result["return_codes"]["racf_return_code"]
+    return_code = result.result["return_codes"]["racf_return_code"]
+    if return_code in {0, 4}:
+        record_profile_change(
+            admin_type="resource",
+            identity={"resource": resource_name, "class": resource_class},
+            operation=operation,
+            description=f"{'Created' if create else 'Updated'} resource {resource_name} in {resource_class}",
+            before_profile=before_profile,
+            changed_traits=traits,
+        )
+    return return_code
 
 def delete_resource_profile(resource_class: str,resource: str) -> tuple[str, int]:
     if sear_enabled:
+        resource_name = resource.upper()
+        previous = sear({
+            "operation": "extract",
+            "admin_type": "resource",
+            "resource": resource_name,
+            "class": resource_class,
+        })
+        before_profile = None
+        if previous.result["return_codes"]["racf_return_code"] == 0:
+            before_profile = previous.result.get("profile")
         result = sear( # type: ignore
                 {
                     "operation": "delete", 
                     "admin_type": "resource", 
-                    "resource": resource.upper(),
+                    "resource": resource_name,
                     "class": resource_class,
                 },
             )
-        #TODO add error message
-        return "", result.result["return_codes"]["racf_return_code"]
+        return_code = result.result["return_codes"]["racf_return_code"]
+        if return_code == 0:
+            record_profile_change(
+                admin_type="resource",
+                identity={"resource": resource_name, "class": resource_class},
+                operation="delete",
+                description=f"Deleted resource {resource_name} in {resource_class}",
+                before_profile=before_profile,
+            )
+        return "", return_code
     else:
         return "SEAR can't be found", 8
