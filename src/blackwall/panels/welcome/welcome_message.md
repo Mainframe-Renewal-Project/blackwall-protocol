@@ -9,4 +9,4 @@ Also consider reading the documentation: <https://emmasbox.github.io/blackwall-p
 
 ## Share the love
 
-If you enjoy Blackwall Protocol please star it on <https://github.com/EmmasBox/blackwall-protocol>. Blackwall is made possible thanks to the CBTTape project.
+If you enjoy Blackwall Protocol please star it on <https://github.com/Mainframe-Renewal-Project/blackwall-protocol>. Blackwall is made possible thanks to the CBTTape project.
