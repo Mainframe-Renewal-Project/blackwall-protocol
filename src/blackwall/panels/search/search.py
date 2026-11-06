@@ -33,7 +33,7 @@ class PanelSearchUser(VerticalGroup):
         yield Button(label=f"{get_emoji("🔎")} Search",action="search")
 
     async def action_search(self):
-        await self.app.run_action(self.search_action,default_namespace=self.parent)
+        await self.app.run_action(self.search_action,default_namespace=self.parent.parent)
 
 class PanelSearchGroup(VerticalGroup):
     def __init__(self, search_action: str, id: str):  # noqa: A002
@@ -47,7 +47,7 @@ class PanelSearchGroup(VerticalGroup):
         yield Button(label=f"{get_emoji("🔎")} Search",action="search")
 
     async def action_search(self):
-        await self.app.run_action(self.search_action,default_namespace=self.parent)
+        await self.app.run_action(self.search_action,default_namespace=self.parent.parent)
 
 class PanelSearchDataset(VerticalGroup):
     def __init__(self, search_action: str, id: str):  # noqa: A002
@@ -61,7 +61,7 @@ class PanelSearchDataset(VerticalGroup):
         yield Button(label=f"{get_emoji("🔎")} Search",action="search")
 
     async def action_search(self):
-        await self.app.run_action(self.search_action,default_namespace=self.parent)
+        await self.app.run_action(self.search_action,default_namespace=self.parent.parent)
 
 class PanelSearchResource(VerticalGroup):
     def __init__(self, search_action: str, id: str):  # noqa: A002
@@ -74,11 +74,11 @@ class PanelSearchResource(VerticalGroup):
     def compose(self) -> ComposeResult:
         yield Label("Search for resource profile",classes="search-label")
         yield Input(max_length=8,id="search_field_class",suggester=SuggestFromList(self.active_classes,case_sensitive=False),placeholder="class...",classes="field-short-generic")
-        yield Input(max_length=255,placeholder="resource profile...",classes="field-long-generic")
+        yield Input(max_length=255,id="search_field",placeholder="resource profile...",classes="field-long-generic")
         yield Button(label=f"{get_emoji("🔎")} Search",action="search")
 
     async def action_search(self):
-        await self.app.run_action(self.search_action,default_namespace=self.parent)
+        await self.app.run_action(self.search_action,default_namespace=self.parent.parent)
 
 class PanelSearchSwitcherButtons(HorizontalGroup):
     def compose(self) -> ComposeResult:
