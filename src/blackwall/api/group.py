@@ -2,6 +2,7 @@
 
 import importlib.util
 from dataclasses import dataclass, field
+from typing import Any
 
 from .traits_base import TraitsBase
 
@@ -20,10 +21,10 @@ class BaseGroupTraits(TraitsBase):
     dataset_model: str | None = field(default=None,metadata={"label": "Dataset model", "allowed_in": {"add","alter","extract"}})
     superior_group: str | None = field(default=None,metadata={"label": "Superior group","allowed_in": {"add","alter","extract"}})
     terminal_universal_access: bool | None = field(default=None,metadata={"label": "Terminal universal access","allowed_in": {"add","alter","extract"}})
-    universal: str | None = field(default=None,metadata={"allowed_in": {"add","extract"}})
-    subgroups: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    universal: bool | None = field(default=None,metadata={"allowed_in": {"add","extract"}})
+    subgroups: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
     subgroup: str | None = field(default=None,metadata={"label": "Subgroup","allowed_in": {"extract"}})
-    connected_users: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    connected_users: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
     connected_user_authority: str | None = field(default=None,metadata={"label": "Connected user authority","allowed_in": {"extract"}})
     connected_userid: str | None = field(default=None,metadata={"allowed_in": {"extract"}})
     create_date: str | None = field(default=None,metadata={"allowed_in": {"extract"}})

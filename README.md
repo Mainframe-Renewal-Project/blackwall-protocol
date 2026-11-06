@@ -39,19 +39,19 @@ Blackwall does not support ACF2 or Top Secret. Users are welcome to fork the cod
 - z/OS 2.5 or later.
 - OpenSSH installed and configured on z/OS (for connecting to z/OS UNIX)
   - OMVS in ISPF does not work due to a lack of terminal features.
-- Python 3.12 or later.
+- Python 3.13 or later.
 
 #### Python packages
 
-- Textual 3.7.1 or later (for UI)
-- [SEAR](https://github.com/Mainframe-Renewal-Project/sear) 0.2.1 (To communicate with RACF)
+- Textual 8.2.8 or later (for UI)
+- [SEAR](https://github.com/Mainframe-Renewal-Project/sear) 0.7.1 (To communicate with RACF)
   - SEAR being a dependency means you need the IRRSEQ00, IRRSMO00 and RACF Subsystem Address Space configured.
 
 ### Optional dependencies
 
 #### Python packages
 
-- [ZOAU 1.3.4.x or later](https://www.ibm.com/docs/en/zoau/1.3.x) (For gathering system information like LPAR name. Not required but highly recommended)
+- [ZOAU 1.4.x.x or later](https://www.ibm.com/docs/en/zoau/1.4.x) (For gathering system information like LPAR name. Not required but highly recommended)
 - [textual-image](https://github.com/lnqs/textual-image), [pillow](https://github.com/python-pillow/Pillow), and [zlib](https://github.com/zopencommunity/zlibport) (For image support)
 
 ## Installation

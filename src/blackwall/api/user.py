@@ -43,6 +43,9 @@ class BaseUserTraits(TraitsBase):
     security_level: str | None = field(default=None,metadata={"label": "Security level"})
     security_label: str | None = field(default=None,metadata={"label": "Security label"})
     class_authorization: str | None = field(default=None)
+    class_authorizations: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    group_connections: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    security_categories: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
     universal_access: str | None = field(default=None,metadata={"label": "UACC"})
 
     model_dataset: str | None = field(default=None,metadata={"label": "Model dataset"})
@@ -62,9 +65,11 @@ class CICSUserTraits(TraitsBase):
     operator_id: str | None = field(default=None, metadata={"label": "operator id", "input_args": {"max_length": 8,"classes": "field-short-generic"}})
     operator_priority: str | None = field(default=None, metadata={"label": "operator priority", "input_args": {"max_length": 4,"classes": "field-short-generic"}})
     resource_security_level_key: str | None = field(default=None, metadata={"label": "resource security level key", "input_args": {"classes": "field-long-generic"}})
-    resource_security_level_keys: str | None = field(default=None, metadata={"label": "resource security level keys", "input_args": {"classes": "field-long-generic"}})
+    resource_security_level_keys: list[dict[str, Any]] | None = field(default=None, metadata={"allowed_in": {"extract"}})
     timeout: str | None = field(default=None, metadata={"label": "timeout", "input_args": {"max_length": 4,"classes": "field-short-generic"}})
     transaction_security_level_key: str | None = field(default=None, metadata={"label": "transaction security level key", "input_args": {"classes": "field-long-generic"}})
+    transaction_security_level_keys: list[dict[str, Any]] | None = field(default=None, metadata={"allowed_in": {"extract"}})
+    operator_classes: list[dict[str, Any]] | None = field(default=None, metadata={"allowed_in": {"extract"}})
     force_signoff_when_xrf_takeover: bool | None = field(default=None, metadata={"label": "Force signoff when xrf takeover", "input_args": {"classes": "field-long-generic"}})
 
 @dataclass
@@ -121,8 +126,9 @@ class NetviewUserTraits(TraitsBase):
     security_control_check: str | None = None
     domain: str | None = None
     logon_commands: str | None = None
-    receive_unsolicited_messages: str | None = None
-    operator_graphic_monitor_facility_administration_allowed: str | None = None
+    receive_unsolicited_messages: bool | None = None
+    domains: list[dict[str, Any]] | None = field(default=None, metadata={"allowed_in": {"extract"}})
+    operator_graphic_monitor_facility_administration_allowed: bool | None = None
     operator_graphic_monitor_facility_display_authority: str | None = None
     operator_scope_classes: str | None = None
 
@@ -138,7 +144,7 @@ class OMVSUserTraits(TraitsBase):
     max_files_per_process: int | None = field(default=None, metadata={"label": "max files per process", "input_args": {"classes": "field-long-generic"}})
     max_file_mapping_pages: int | None = field(default=None, metadata={"label": "max file mapping pages", "input_args": {"classes": "field-long-generic"}})
     max_processes: int | None = field(default=None, metadata={"label": "max processes", "input_args": {"classes": "field-long-generic"}})
-    max_shared_memory: int | None = field(default=None, metadata={"label": "max shared memory", "input_args": {"max_length": 10, "classes": "field-medium-generic"}})
+    max_shared_memory: str | None = field(default=None, metadata={"label": "max shared memory", "input_args": {"max_length": 10, "classes": "field-medium-generic"}})
     max_non_shared_memory: str | None = field(default=None, metadata={"label": "max non shared memory", "input_args": {"max_length": 10, "classes": "field-medium-generic"}})
     max_threads: int | None = field(default=None, metadata={"label": "max threads", "input_args": {"max_length": 10, "classes": "field-medium-generic"}})
 
@@ -152,13 +158,18 @@ class OperparmUserTraits(TraitsBase):
     receive_internal_console_messages: str | None = None
     console_searching_key: str | None = None
     message_level: str | None = None
+    message_levels: list[dict[str, Any]] | None = field(default=None, metadata={"allowed_in": {"extract"}})
     log_command_responses: str | None = None
     message_format: str | None = None
     migration_id: str | None = None
     monitor_event: str | None = None
+    monitor_events: list[dict[str, Any]] | None = field(default=None, metadata={"allowed_in": {"extract"}})
     message_scope: str | None = None
+    message_scopes: list[dict[str, Any]] | None = field(default=None, metadata={"allowed_in": {"extract"}})
     console_authority: str | None = None
+    console_authorities: list[dict[str, Any]] | None = field(default=None, metadata={"allowed_in": {"extract"}})
     receive_routing_code: str | None = None
+    receive_routing_codes: list[dict[str, Any]] | None = field(default=None, metadata={"allowed_in": {"extract"}})
     message_queue_storage: str | None = None
     receive_undelivered_messages: str | None = None
     receive_unknown_console_id_messages: str | None = None

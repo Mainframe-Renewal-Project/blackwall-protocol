@@ -2,6 +2,7 @@
 
 import importlib.util
 from dataclasses import dataclass, field
+from typing import Any
 
 from .traits_base import TraitsBase
 
@@ -21,12 +22,10 @@ class BaseResourceTraits(TraitsBase):
     audit_control: str | None = field(default=None,metadata={"allowed_in": {"add","alter"}})
     audit_none: str | None = field(default=None,metadata={"allowed_in": {"add","alter"}})
     audit_read: str | None = field(default=None,metadata={"allowed_in": {"add","alter"}})
-    audit_read: str | None = field(default=None,metadata={"allowed_in": {"add","alter"}})
     audit_update: str | None = field(default=None,metadata={"allowed_in": {"add","alter"}})
     security_category: str | None = field(default=None,metadata={"label": "Security category", "allowed_in": {"add","alter"}})
     installation_data: str | None = field(default=None,metadata={"label": "Installation data", "allowed_in": {"add","alter"}})
     level: str | None = field(default=None,metadata={"allowed_in": {"add","alter"}})
-    member_class_name: str | None = field(default=None,metadata={"allowed_in": {"add","alter"}})
     notify_userid: str | None = field(default=None,metadata={"label": "Notify userid", "allowed_in": {"add","alter"}})
     security_label: str | None = field(default=None,metadata={"label": "Security label", "allowed_in": {"add","alter"}})
     security_level: str | None = field(default=None,metadata={"label": "Security level", "allowed_in": {"add","alter"}})
@@ -54,7 +53,7 @@ class BaseResourceTraits(TraitsBase):
     volume: str | None = field(default=None,metadata={"allowed_in": {"alter"}})
 
     #extraction fields
-    access_list: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    access_list: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
     access_count: int | None = field(default=None,metadata={"allowed_in": {"extract"}})
     access_type: str | None = field(default=None,metadata={"allowed_in": {"extract"}})
     access_id: str | None = field(default=None,metadata={"allowed_in": {"extract"}})
@@ -62,16 +61,17 @@ class BaseResourceTraits(TraitsBase):
     control_access_count: int | None = field(default=None,metadata={"allowed_in": {"extract"}})
     read_access_count: int | None = field(default=None,metadata={"allowed_in": {"extract"}})
     update_access_count: int | None = field(default=None,metadata={"allowed_in": {"extract"}})
-    security_categories: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    security_categories: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
     create_date: str | None = field(default=None,metadata={"allowed_in": {"extract"}})
     is_generic: bool | None = field(default=None,metadata={"allowed_in": {"extract"}})
     last_change_date: str | None = field(default=None,metadata={"allowed_in": {"extract"}})
     last_reference_date: str | None = field(default=None,metadata={"allowed_in": {"extract"}})
-    member_class_names: str | None = field(default=None,metadata={"allowed_in": {"extract"}})
-    auditing: str | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    members: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    alter_volume: str | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    auditing: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
     global_auditing: str | None = field(default=None,metadata={"allowed_in": {"extract"}})
-    volumes: str | None = field(default=None,metadata={"allowed_in": {"extract"}})
-    terminal_access_allowed_days: str | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    volumes: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    terminal_access_allowed_days: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
 
 @dataclass
 class KerbResourceTraits(TraitsBase):
@@ -79,17 +79,17 @@ class KerbResourceTraits(TraitsBase):
     default_ticket_life: int | None = field(default=None,metadata={"label": "Default ticket life","allowed_in": {"add","alter","extract"}})
     max_ticket_life: int | None = field(default=None,metadata={"label": "Max ticket life","allowed_in": {"add","alter","extract"}})
     encryption_algorithm: str | None = field(default=None,metadata={"label": "Encryption algorithm","allowed_in": {"add","alter","extract"}})
-    encryption_algorithms: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    encryption_algorithms: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
     realm_name: str | None = field(default=None,metadata={"label": "Realm name","allowed_in": {"add","alter","extract"}})
     key_version: str | None = field(default=None,metadata={"label": "Key version","allowed_in": {"extract"}})
-    min_ticket_life: list[str] | None = field(default=None,metadata={"allowed_in": {"add","alter","extract"}})
+    min_ticket_life: int | None = field(default=None,metadata={"allowed_in": {"add","alter","extract"}})
     password: str | None = field(default=None,metadata={"allowed_in": {"add","alter"}})
 
 @dataclass
 class DLFDataResourceTraits(TraitsBase):
     job_name: str | None = field(default=None,metadata={"label": "Job name","allowed_in": {"add","alter","extract"}})
-    job_names: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
-    #retain_object_after_use: bool | None = field(default=None,metadata={"label": "Retain object after use","allowed_in": {"add","alter"}})
+    job_names: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    retain_object_after_use: bool | None = field(default=None,metadata={"label": "Retain object after use","allowed_in": {"add","alter","extract"}})
 
 @dataclass
 class EIMResourceTraits(TraitsBase):
@@ -105,14 +105,14 @@ class JESResourceTraits(TraitsBase):
 @dataclass
 class ICSFResourceTraits(TraitsBase):
     certificate_label: str | None = field(default=None,metadata={"label": "Certificate label","allowed_in": {"add","alter","extract"}})
-    certificate_labels: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    certificate_labels: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
     exportable_public_keys: str | None = field(default=None,metadata={"label": "Exportable public keys","allowed_in": {"add","alter","extract"}})
     symmetric_export_public_key: str | None = field(default=None,metadata={"label": "Symmetric export public key","allowed_in": {"add","alter","extract"}})
-    symmetric_export_public_keys: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
-    symmetric_cpacf_rewrap: str | None = field(default=None,metadata={"allowed_in": {"add","alter","extract"}})
+    symmetric_export_public_keys: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    symmetric_cpacf_rewrap: bool | None = field(default=None,metadata={"allowed_in": {"add","alter","extract"}})
     symmetric_cpacf_rewrap_return: bool | None = field(default=None,metadata={"allowed_in": {"add","alter","extract"}})
     asymmetric_key_usage: str | None = field(default=None,metadata={"allowed_in": {"add","alter","extract"}})
-    key_usage_options: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    key_usage_options: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
 
 @dataclass
 class ICTXResourceTraits(TraitsBase):
@@ -126,6 +126,9 @@ class IDTPARMSResourceTraits(TraitsBase):
     signature_algorithm: str | None = field(default=None,metadata={"label": "Signature algorithm", "allowed_in": {"add","alter","extract"}})
     identity_token_timeout: int | None = field(default=None,metadata={"label": "Identity token timeout","allowed_in": {"add","alter","extract"}})
     use_for_any_application: str | None = field(default=None,metadata={"label": "Use for any application","allowed_in": {"add","alter","extract"}})
+    protection_allowed: str | None = field(default=None,metadata={"allowed_in": {"add","alter","extract"}})
+    signature_label_primary: str | None = field(default=None,metadata={"allowed_in": {"add","alter","extract"}})
+    signature_key_id_primary: str | None = field(default=None,metadata={"allowed_in": {"add","alter","extract"}})
 
 @dataclass
 class SessionResourceTraits(TraitsBase):
@@ -156,7 +159,7 @@ class ProxyResourceTraits(TraitsBase):
 @dataclass
 class MFPolicyResourceTraits(TraitsBase):
     factor: str | None = field(default=None,metadata={"label": "Factor","allowed_in": {"add","alter","extract"}})
-    factors: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    factors: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
     token_timeout: int | None = field(default=None,metadata={"label": "Token timeout","allowed_in": {"extract"}})
     reuse_token: bool | None = field(default=None,metadata={"label": "Re-use token","allowed_in": {"add","alter","extract"}})
 
@@ -171,18 +174,18 @@ class CDTINFOResourceTraits(TraitsBase):
     case_allowed: str | None = field(default=None,metadata={"label": "Case allowed", "allowed_in": {"add","alter","extract"}})
     default_racroute_return_code: str | None = field(default=None,metadata={"label": "Default racroute return code", "allowed_in": {"add","alter","extract"}})
     valid_first_character: str | None = field(default=None,metadata={"label": "Valid first character","allowed_in": {"add","alter","extract"}})
-    valid_first_characters: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    valid_first_characters: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
     generic_profile_checking: str | None = field(default=None,metadata={"label": "Generic profile checking","allowed_in": {"add","alter","extract"}})
     generic_profile_sharing: str | None = field(default=None,metadata={"label": "Generic profile sharing","allowed_in": {"add","alter","extract"}})
     grouping_class_name: str | None = field(default=None,metadata={"label": "Grouping class name","allowed_in": {"add","alter","extract"}})
     key_qualifiers: str | None = field(default=None,metadata={"label": "Key qualifiers","allowed_in": {"add","alter","extract"}})
-    manditory_access_control_processing: str | None = field(default=None,metadata={"label": "Mandatory access control processing","allowed_in": {"add","alter","extract"}})
+    mandatory_access_control_processing: str | None = field(default=None,metadata={"label": "Mandatory access control processing","allowed_in": {"add","alter","extract"}})
     max_length: int | None = field(default=None,metadata={"label": "Max length", "allowed_in": {"add","alter","extract"}})
     max_length_entityx: int | None = field(default=None,metadata={"label": "Max length entityx", "allowed_in": {"add","alter","extract"}})
     member_class_name: str | None = field(default=None,metadata={"label": "Member class name","allowed_in": {"add","alter","extract"}})
     operations: str | None = field(default=None,metadata={"label": "Operations","allowed_in": {"add","alter","extract"}})
     valid_other_character: str | None = field(default=None,metadata={"label": "Valid other character","allowed_in": {"add","alter","extract"}})
-    valid_other_characters: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    valid_other_characters: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
     posit_number: int | None = field(default=None,metadata={"label": "Posit number","allowed_in": {"add","alter","extract"}})
     profiles_allowed: str | None = field(default=None,metadata={"label": "Profiles allowed","allowed_in": {"add","alter","extract"}})
     raclist_allowed: str | None = field(default=None,metadata={"label": "Raclist allowed","allowed_in": {"add","alter","extract"}})
@@ -198,17 +201,17 @@ class TMEResourceTraits(TraitsBase):
     resource: str | None = field(default=None,metadata={"label": "Resource","allowed_in": {"add","alter","extract"}})
     role: str | None = field(default=None,metadata={"label": "Role","allowed_in": {"add","alter","extract"}})
 
-    children: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
-    groups: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
-    resources: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
-    roles: list[str] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    children: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    groups: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    resources: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
+    roles: list[dict[str, Any]] | None = field(default=None,metadata={"allowed_in": {"extract"}})
 
 @dataclass
 class SSIGNONResourceTraits(TraitsBase):
     enhanced_pass_ticket_label: str | None = field(default=None,metadata={"label": "Enhanced pass ticket label","allowed_in": {"add","alter","extract"}})
     enhanced_pass_ticket_type: str | None = field(default=None,metadata={"label": "Enhanced pass ticket type","allowed_in": {"add","alter","extract"}})
     enhanced_pass_ticket_timeout: str | None = field(default=None,metadata={"label": "Enhanced pass ticket timeout","allowed_in": {"add","alter","extract"}})
-    enhanced_pass_ticket_replay: str | None = field(default=None,metadata={"label": "Enhanced pass ticket replay","allowed_in": {"add","alter","extract"}})
+    enhanced_pass_ticket_replay: bool | None = field(default=None,metadata={"label": "Enhanced pass ticket replay","allowed_in": {"add","alter","extract"}})
     legacy_pass_ticket_label: str | None = field(default=None,metadata={"label": "Legacy pass ticket label","allowed_in": {"add","alter","extract"}})
 
     mask_legacy_pass_ticket_key: str | None = field(default=None,metadata={"allowed_in": {"add","alter"}})

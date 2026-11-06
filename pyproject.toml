@@ -4,12 +4,11 @@ description = "Blackwall Protocol for mainframe security administration"
 dynamic = ["version"]
 requires-python = ">=3.13"
 dependencies = [
-  "pysear~=0.4.0 ; sys_platform=='zos'",
-  "textual~=3.7.1",
+  "pysear~=0.7.1 ; sys_platform=='zos'",
+  "textual~=8.2.8",
 ]
 authors = [
   {name = "Emma Skovgaard"},
-  {name = "Karoline Halberg Rasmussen"}
 ]
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -31,26 +30,27 @@ classifiers = [
   #Supported python versions
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 
   "Typing :: Typed",
 ]
 
 [project.optional-dependencies]
 images = [
-  "qrcode~=8.1",
-  "textual-image~=0.8.3",
+  "qrcode~=8.2",
+  "textual-image~=0.14.2",
 ]
 dev = [
-  "textual-dev>=1.7.0",
+  "textual-dev>=1.8.0",
 ]
 
 [project.scripts]
 blackwall = "blackwall.main:main"
 
 [project.urls]
-Repository = "https://github.com/EmmasBox/blackwall-protocol"
-Source = "https://github.com/EmmasBox/blackwall-protocol"
-Issues = "https://github.com/EmmasBox/blackwall-protocol/issues"
+Repository = "https://github.com/Mainframe-Renewal-Project/blackwall-protocol"
+Source = "https://github.com/Mainframe-Renewal-Project/blackwall-protocol"
+Issues = "https://github.com/Mainframe-Renewal-Project/blackwall-protocol/issues"
 Pypi = "https://pypi.org/project/blackwall/"
 Documentation = "https://emmasbox.github.io/blackwall-protocol-docs/"
 

@@ -1,11 +1,13 @@
 {
     "cSpell.words": [
+        "airgapped",
         "blackwall",
         "cdtinfo",
         "Cfdef",
         "CICS",
         "cpacf",
         "datatable",
+        "DIGTCERT",
         "dlfdata",
         "hardcopy",
         "ICSF",
@@ -27,7 +29,9 @@
         "pysear",
         "racf",
         "raclist",
+        "RADMIN",
         "rexx",
+        "RRSF",
         "Rvary",
         "servauth",
         "setropts",
