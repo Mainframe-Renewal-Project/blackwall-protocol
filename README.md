@@ -36,7 +36,7 @@ Blackwall does not support ACF2 or Top Secret. Users are welcome to fork the cod
 
 #### System dependencies
 
-- z/OS 2.5 or later.
+- z/OS 3.1 or later.
 - OpenSSH installed and configured on z/OS (for connecting to z/OS UNIX)
   - OMVS in ISPF does not work due to a lack of terminal features.
 - Python 3.13 or later.
