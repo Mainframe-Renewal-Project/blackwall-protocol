@@ -5,7 +5,9 @@ from textual.containers import Vertical
 from textual.widgets import DataTable, Label, LoadingIndicator
 
 from blackwall.api import user
+from blackwall.api import resource
 from blackwall.messages import OpenTab
+from blackwall.panels.resource.generator import get_resource_objects_for_panel
 from blackwall.panels.search.search_backend import QueryType
 from blackwall.panels.users.generator import get_user_objects_for_panel
 
@@ -134,13 +136,41 @@ class PanelResultsDatasets(Vertical):
         dataset_table.add_columns(*DATASET_COLUMNS[0])
 
 class PanelResultsResources(Vertical):
-    def __init__(self, resource_dict: dict):
+    def __init__(self, resource_dict: dict, resource_class: str | None = None):
         super().__init__()
         self.resource_dict = resource_dict
+        self.resource_class = resource_class
 
     def compose(self) -> ComposeResult:
-        yield Label("General resources profiles:")
-        yield DataTable(id="results_dataset_table")        
+        yield Label(f"Resource profiles ({self.resource_class or 'all classes'}):")
+        yield DataTable(id="results_resource_table")
+
+    def on_mount(self) -> None:
+        resource_table = self.get_child_by_id("results_resource_table",DataTable)
+        resource_table.zebra_stripes = True
+        resource_table.add_column("Resource")
+        profiles = self.resource_dict.get("profiles", [])
+        if profiles:
+            resource_table.add_rows((profile,) for profile in profiles)
+
+    def key_enter(self) -> None:
+        if self.resource_class is None:
+            return
+        resource_table = self.query_exactly_one("#results_resource_table",DataTable)
+        if resource_table.row_count == 0 or resource_table.cursor_column != 0:
+            return
+        resource_name = resource_table.get_cell_at(resource_table.cursor_coordinate)
+        resource_dict = resource.get_resource_profile(
+            resource_class=self.resource_class,
+            resource=resource_name,
+        )
+        if resource_dict and resource_dict["return_codes"]["racf_return_code"] == 0:
+            panel = get_resource_objects_for_panel(
+                resource_name=resource_name,
+                resource_class=self.resource_class,
+                resource_dict=resource_dict,
+            )
+            self.post_message(OpenTab(f"Resource: {resource_name}", panel))
 
 class PanelResultsMixedType(Vertical):
     def __init__(self, results: dict[QueryType,dict]):

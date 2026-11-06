@@ -14,8 +14,12 @@ from blackwall.messages import OpenTab
 from blackwall.panels.dataset.dataset import DatasetInfo, PanelDataset
 from blackwall.panels.group.group import GroupInfo, PanelGroup
 from blackwall.panels.keyrings.keyrings import KeyringInfo, PanelKeyring
-from blackwall.panels.resource.resource import PanelResource, ResourceInfo
-from blackwall.panels.search.results import PanelResultsMixedType, PanelResultsUsers
+from blackwall.panels.resource.generator import get_resource_objects_for_panel
+from blackwall.panels.search.results import (
+    PanelResultsMixedType,
+    PanelResultsResources,
+    PanelResultsUsers,
+)
 from blackwall.panels.search.search_backend import QueryType, search_database_query_one
 from blackwall.panels.users.generator import get_user_objects_for_panel
 from blackwall.regex import racf_id_regex
@@ -163,78 +167,34 @@ class PanelSearch(VerticalScroll):
                     self.notify(f"Dataset profile {search_query} couldn't be found")
             elif search_switcher_id == "search_resource_panel":
                 search_query_class = self.query_exactly_one(f"#{search_switcher_id}").query_exactly_one("#search_field_class",Input).value
+                if not search_query_class:
+                    self.notify("Enter a resource class to search",severity="warning")
+                    return
 
-                resource_dict = resource.get_resource_profile(resource=search_query,resource_class=search_query_class)
+                resource_dict = resource.get_resource_profile(
+                    resource_class=search_query_class,
+                    resource=search_query,
+                )
                 if resource_dict and resource_dict["return_codes"]["racf_return_code"] == 0:
-                    new_resource_panel = PanelResource()
-                
-                    base_traits = resource.BaseResourceTraits.from_dict(prefix="base",source=resource_dict["profile"]["base"])
-
-                    new_resource_panel.resource_info = ResourceInfo(
-                        base_traits=base_traits,
-                        resource_class=search_query_class,
+                    panel = get_resource_objects_for_panel(
                         resource_name=search_query,
+                        resource_class=search_query_class,
+                        resource_dict=resource_dict,
                     )
-
-                    if 'profile' in resource_dict and 'kerb' in resource_dict['profile']:
-                        new_resource_panel.resource_info.kerb_traits = resource.KerbResourceTraits.from_dict(prefix="kerb",source=resource_dict["profile"]["kerb"])
-
-                    if 'profile' in resource_dict and 'dlf' in resource_dict['profile']:
-                        new_resource_panel.resource_info.dlf_traits = resource.DLFDataResourceTraits.from_dict(prefix="dlf",source=resource_dict["profile"]["dlf"])
-
-                    if 'profile' in resource_dict and 'eim' in resource_dict['profile']:
-                        new_resource_panel.resource_info.eim_traits = resource.EIMResourceTraits.from_dict(prefix="eim",source=resource_dict["profile"]["eim"])
-
-                    if 'profile' in resource_dict and 'jes' in resource_dict['profile']:
-                        new_resource_panel.resource_info.jes_traits = resource.JESResourceTraits.from_dict(prefix="jes",source=resource_dict["profile"]["jes"])
-
-                    if 'profile' in resource_dict and 'icsf' in resource_dict['profile']:
-                        new_resource_panel.resource_info.icsf_traits = resource.ICSFResourceTraits.from_dict(prefix="icsf",source=resource_dict["profile"]["icsf"])
-
-                    if 'profile' in resource_dict and 'kerb' in resource_dict['profile']:
-                        new_resource_panel.resource_info.kerb_traits = resource.KerbResourceTraits.from_dict(prefix="kerb",source=resource_dict["profile"]["kerb"])
-
-                    if 'profile' in resource_dict and 'ictx' in resource_dict['profile']:
-                        new_resource_panel.resource_info.ictx_traits = resource.ICTXResourceTraits.from_dict(prefix="ictx",source=resource_dict["profile"]["ictx"])
-
-                    if 'profile' in resource_dict and 'idtparms' in resource_dict['profile']:
-                        new_resource_panel.resource_info.idtparms_traits = resource.IDTPARMSResourceTraits.from_dict(prefix="idtparms",source=resource_dict["profile"]["idtparms"])
-
-                    if 'profile' in resource_dict and 'session' in resource_dict['profile']:
-                        new_resource_panel.resource_info.session_traits = resource.SessionResourceTraits.from_dict(prefix="session",source=resource_dict["profile"]["session"])
-
-                    if 'profile' in resource_dict and 'svfmr' in resource_dict['profile']:
-                        new_resource_panel.resource_info.svfmr_traits = resource.SVFMRResourceTraits.from_dict(prefix="svfmr",source=resource_dict["profile"]["svfmr"])
-
-                    if 'profile' in resource_dict and 'stdata' in resource_dict['profile']:
-                        new_resource_panel.resource_info.stdata_traits = resource.STDATAResourceTraits.from_dict(prefix="stdata",source=resource_dict["profile"]["stdata"])
-
-                    if 'profile' in resource_dict and 'proxy' in resource_dict['profile']:
-                        new_resource_panel.resource_info.proxy_traits = resource.ProxyResourceTraits.from_dict(prefix="proxy",source=resource_dict["profile"]["proxy"])
-
-                    if 'profile' in resource_dict and 'mfpolicy' in resource_dict['profile']:
-                        new_resource_panel.resource_info.mfpolicy_traits = resource.MFPolicyResourceTraits.from_dict(prefix="mfpolicy",source=resource_dict["profile"]["mfpolicy"])
-
-                    if 'profile' in resource_dict and 'sigver' in resource_dict['profile']:
-                        new_resource_panel.resource_info.sigver_traits = resource.SIGVERResourceTraits.from_dict(prefix="sigver",source=resource_dict["profile"]["sigver"])
-
-                    if 'profile' in resource_dict and 'tme' in resource_dict['profile']:
-                        new_resource_panel.resource_info.tme_traits = resource.TMEResourceTraits.from_dict(prefix="tme",source=resource_dict["profile"]["tme"])
-
-                    if 'profile' in resource_dict and 'cdtinfo' in resource_dict['profile']:
-                        new_resource_panel.resource_info.cdtinfo_traits = resource.CDTINFOResourceTraits.from_dict(prefix="cdtinfo",source=resource_dict["profile"]["cdtinfo"])
-
-                    if 'profile' in resource_dict and 'ssignon' in resource_dict['profile']:
-                        new_resource_panel.resource_info.ssignon_traits = resource.SSIGNONResourceTraits.from_dict(prefix="ssignon",source=resource_dict["profile"]["ssignon"])
-
-                    if 'profile' in resource_dict and 'cfdef' in resource_dict['profile']:
-                        new_resource_panel.resource_info.cfdef_traits = resource.CfdefResourceTraits.from_dict(prefix="cfdef",source=resource_dict["profile"]["cfdef"])
-
-                    self.post_message(OpenTab(f"Resource: {search_query}",new_resource_panel))
-
+                    self.post_message(OpenTab(f"Resource: {search_query}",panel))
                     self.notify(f"Found resource profile: {search_query}")
                 else:
-                    self.notify(f"Resource profile {search_query} couldn't be found")
+                    if search_query in ("", "*"):
+                        resource_results = resource.get_resource_profiles(search_query_class)
+                    else:
+                        resource_results = resource.search_resource_profiles(
+                            resource_class=search_query_class,
+                            query=search_query,
+                        )
+                    self.post_message(OpenTab(
+                        f"Resource profiles: {search_query_class}",
+                        PanelResultsResources(resource_results, search_query_class),
+                    ))
             elif search_switcher_id == "search_keyring_panel":
                 search_query_keyring_owner = self.query_exactly_one(f"#{search_switcher_id}").query_exactly_one("#search_field_keyring_owner",Input).value
 
