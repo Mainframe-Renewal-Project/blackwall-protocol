@@ -82,6 +82,18 @@ class PanelWelcomeActions(VerticalGroup):
         self.post_message(OpenTab(title="Health check",content=PanelAnalysis()))
 
 class PanelWelcomeContent(Grid):
+    def on_mount(self) -> None:
+        self._set_layout(self.size.width)
+
+    def on_resize(self, event) -> None:
+        self._set_layout(event.size.width)
+
+    def _set_layout(self, width: int) -> None:
+        if width < 120:
+            self.add_class("narrow")
+        else:
+            self.remove_class("narrow")
+
     def compose(self) -> ComposeResult:
         yield PanelWelcomeMessage()
         yield PanelWelcomeLogo(logo_path=logo_path)

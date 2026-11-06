@@ -42,7 +42,20 @@ PanelWelcomeContent {
     layout: grid;
     grid-size: 4;
     grid-columns: 4fr;
+    grid-rows: auto;
     grid-gutter: 1;
+    height: auto;
+}
+
+PanelWelcomeContent.narrow {
+    grid-size: 1;
+    grid-columns: 1fr;
+}
+
+PanelWelcomeContent.narrow > PanelWelcomeMessage,
+PanelWelcomeContent.narrow > PanelWelcomeLogo,
+PanelWelcomeContent.narrow > PanelWelcomeActions {
+    column-span: 1;
 }
 
 PanelWelcomeMessage {
