@@ -15,10 +15,11 @@ class RefreshScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Grid(
             Label("Refresh in-storage generic profiles for this RACF class?", id="question"),
-            Input(id="class_name",placeholder="RACF class (e.g. DATASET)",max_length=8),
+            Input(id="class_name",placeholder="RACF class (e.g. DATASET)",max_length=8,classes="refresh-class-input"),
             Button("Cancel", variant="primary", id="cancel", classes="modal-buttons"),
             Button("Confirm", variant="error", id="confirm", classes="modal-buttons"),
             id="dialog",
+            classes="refresh-dialog",
         )
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
