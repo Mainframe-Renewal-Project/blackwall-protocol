@@ -117,16 +117,17 @@ def get_active_classes() -> list[str]:
     else:
         return []
 
-def refresh_racf():
-    """Refresh RACF"""
+def refresh_racf(class_name: str | None = None) -> int:
+    """Refresh RACF in-storage profiles, optionally for a generic profile class."""
     if sear_enabled:
+        traits = {"base:refresh": True}
+        if class_name is not None and class_name.strip() != "":
+            traits["base:generic_profile_checking_classes"] = class_name.strip().upper()
         result = sear(
             {
                 "operation": "alter", 
                 "admin_type": "racf-options", 
-                "traits": {
-                    "base:refresh": True,
-                },
+                "traits": traits,
             },
         )
         return result.result["return_codes"]["racf_return_code"] # type: ignore
