@@ -7,3 +7,4 @@
 uv.lock     text zos-working-tree-encoding=UTF-8
 *.md		text zos-working-tree-encoding=UTF-8
 *.yml		text zos-working-tree-encoding=UTF-8
+*.sh		text zos-working-tree-encoding=ibm-1047
