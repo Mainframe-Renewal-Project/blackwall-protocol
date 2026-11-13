@@ -52,7 +52,7 @@ Repository = "https://github.com/Mainframe-Renewal-Project/blackwall-protocol"
 Source = "https://github.com/Mainframe-Renewal-Project/blackwall-protocol"
 Issues = "https://github.com/Mainframe-Renewal-Project/blackwall-protocol/issues"
 Pypi = "https://pypi.org/project/blackwall/"
-Documentation = "https://emmasbox.github.io/blackwall-protocol-docs/"
+Documentation = "https://mainframe-renewal-project.github.io/blackwall-protocol-docs/"
 
 [build-system]
 requires = ["setuptools >= 80.9", "setuptools-scm >= 9.2"]
